@@ -17,13 +17,13 @@
       align-items: center;
       height: 100vh;
       background: linear-gradient(#ff9a9e, #fad0c4);
-     }
+    }
 
     .calculator {
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 20px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       padding: 20px;
       width: 300px;
     }
@@ -65,6 +65,10 @@
       color: #000;
       transform: scale(1.05);
       box-shadow: 0 0 15px #00ffcc;
+    }
+
+    button:active {
+      transform: scale(0.95);
     }
 
     .operator {
@@ -127,6 +131,14 @@
     const display = document.getElementById("display");
 
     function appendValue(value) {
+      const lastChar = display.value.slice(-1);
+      const operators = ['+', '-', '*', '/', '.'];
+
+      // Prevent duplicate operators
+      if (operators.includes(lastChar) && operators.includes(value)) {
+        return;
+      }
+
       display.value += value;
     }
 
@@ -140,17 +152,20 @@
 
     function calculate() {
       try {
-        display.value = eval(display.value);
+        if (display.value.trim() === "") return;
+        const result = eval(display.value);
+        if (isNaN(result)) throw Error();
+        display.value = result;
       } catch {
-        display.value = "Error";
+        display.value = "Invalid Expression";
       }
     }
 
     function convertToPercent() {
       try {
-        const lastNumberMatch = display.value.match(/(\d+\.?\d*)$/);
-        if (lastNumberMatch) {
-          const lastNumber = lastNumberMatch[1];
+        const match = display.value.match(/(\d+\.?\d*)$/);
+        if (match) {
+          const lastNumber = match[1];
           const percentValue = parseFloat(lastNumber) / 100;
           display.value = display.value.replace(/(\d+\.?\d*)$/, percentValue);
         }
@@ -158,6 +173,21 @@
         display.value = "Error";
       }
     }
+
+    // Keyboard support
+    document.addEventListener("keydown", (e) => {
+      const key = e.key;
+      if (!isNaN(key) || ['+', '-', '*', '/', '.'].includes(key)) {
+        appendValue(key);
+      } else if (key === 'Enter') {
+        e.preventDefault();
+        calculate();
+      } else if (key === 'Backspace') {
+        deleteLast();
+      } else if (key === 'Escape') {
+        clearDisplay();
+      }
+    });
   </script>
 </body>
 </html>
